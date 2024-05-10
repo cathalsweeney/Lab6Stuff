@@ -110,17 +110,44 @@ class LAPPD:
         self.event_data[:, :, 32:62] -= baseline2 
         #return self.event_data
     
-    def get_event(self, event_id, side, spare_channels):
-        if side == 0:
-            if spare_channels == 0:
-                return self.event_data[event_id,:,2:30]
-            else:
-                return self.event_data[event_id,:,1:31]
+    def get_event(self, event_id, side, spare_channels, which_channel=-1):
+        if(side not in [0,1]):
+            print(side)
+            print("Not a valid side")
+            sys.exit()
+        if(spare_channels not in [0,1]):
+            print("spare_channels should be 0 or 1")
+            sys.exit()
+
+        low_chan = 1
+        hi_chan  = 31
+
+            
+        if side == 1:
+            low_chan += 31
+            hi_chan  += 31
+            
+        if spare_channels == 0:
+            low_chan += 1
+            hi_chan  -= 1
+
+        if which_channel == -1:            
+            ret = self.event_data[event_id,:,low_chan:hi_chan] 
         else:
-            if spare_channels == 0:
-                return self.event_data[event_id,:,33:61] 
-            else:
-                return self.event_data[event_id,:,32:62]
+            ret = self.event_data[event_id,:,which_channel+1] 
+            
+        return ret
+
+#        if side == 0:
+#            if spare_channels == 0:
+#                return self.event_data[event_id,which_channels,2:30]
+#            else:
+#                return self.event_data[event_id,which_channels,1:31]
+#        else:
+#            if spare_channels == 0:
+#                return self.event_data[event_id,which_channels,33:61] 
+#            else:
+#                return self.event_data[event_id,which_channels,32:62]
 
     def plot2D_event(self, event_id, side, spare_channels):
         plt.imshow(self.get_event(event_id, side, spare_channels).astype(float).T,cmap='viridis', aspect='auto')
@@ -137,9 +164,9 @@ class LAPPD:
     def plot1D_event(self, event_id, side, spare_channels):
         plt.plot(self.get_event(event_id, side, spare_channels))
         if spare_channels == 0:
-            plt.title('Projetion Event {}, side {}'.format(event_id, side))
+            plt.title('Projection Event {}, side {}'.format(event_id, side))
         else:
-            plt.title('Projetion Event {}, side {}, + spare channels'.format(event_id, side))
+            plt.title('Projection Event {}, side {}, + spare channels'.format(event_id, side))
         plt.xlabel('Time [ns]')
         plt.ylabel('Amplitude [mV]')
         plt.show()
@@ -156,11 +183,11 @@ class LAPPD:
             ax.set_ylabel('Strip # + spare channels')
 
     def plot1D_eventAx(self, event_id, side, spare_channels, ax):
-        ax.plot(self.get_event(event_id, side, spare_channels))
+        ax.plot(self.get_event(event_id, side, spare_channels, 5))
         if spare_channels == 0:
-            ax.set_title('Projetion , side {}'.format(side))
+            ax.set_title('Projection , side {}'.format(side))
         else:
-            ax.set_title('Projetion, side {}, + spare channels'.format(side))
+            ax.set_title('Projection, side {}, + spare channels'.format(side))
         ax.set_xlabel('Time [ns]')
         ax.set_ylabel('Amplitude [mV]')
 
@@ -207,9 +234,9 @@ class LAPPD:
 
 def main() -> None:
     nevents  = int(sys.argv[1])
-    datapath  = '/Users/marvinascenciososa/Desktop/Lab6/python_proj/input/data/Ascii20241903_141434_100ev.txt'
-    ped1      = '/Users/marvinascenciososa/Desktop/Lab6/python_proj/input/pedestal/ACDC31_needCheck.txt'
-    ped2      = '/Users/marvinascenciososa/Desktop/Lab6/python_proj/input/pedestal/ACDC26_needCheck.txt'
+    datapath  = '/Users/cathalsweeney/postdoc/annie/lappd/ana/files/txt/data/selfTrigger_dacZero17_dacOne20_2400V_nd4p0_9hz/Ascii20240605_105002.txt'
+    ped1      = '/Users/cathalsweeney/postdoc/annie/lappd/ana/files/txt/pedestal/LAPPD40_Pedestal0.txt'
+    ped2      = '/Users/cathalsweeney/postdoc/annie/lappd/ana/files/txt/pedestal/LAPPD40_Pedestal1.txt'
     pedestals = [ped1, ped2]
     output   = './Event_display'
 
